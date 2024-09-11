@@ -15,7 +15,7 @@ var videoWriterInput : AVAssetWriterInput?
 var nameVideo: String = ""
 var recordAudio: Bool = false;
 var myResult: FlutterResult?
-let screenSize = UIScreen.main.bounds
+// let screenSize = UIScreen.main.bounds
     
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_screen_recording", binaryMessenger: registrar.messenger())
@@ -45,6 +45,11 @@ let screenSize = UIScreen.main.bounds
 
 
     @objc func startRecording() {
+
+
+        let screenSize = UIScreen.main.bounds
+        // let sreenWidth = screenSize.width
+        // let sreenHeight = screenSize.height
 
         //Use ReplayKit to record the screen
         //Create the file path to write to
@@ -120,11 +125,11 @@ let screenSize = UIScreen.main.bounds
 
                 switch rpSampleType {
                 case RPSampleBufferType.video:
-                    print("writing sample....");
+                    // print("writing sample....");
                     if self.videoWriter?.status == AVAssetWriter.Status.unknown {
 
                         if (( self.videoWriter?.startWriting ) != nil) {
-                            print("Starting writing");
+                            // print("Starting writing");
                             self.myResult!(true)
                             self.videoWriter?.startWriting()
                             self.videoWriter?.startSession(atSourceTime:  CMSampleBufferGetPresentationTimeStamp(cmSampleBuffer))
@@ -133,9 +138,9 @@ let screenSize = UIScreen.main.bounds
 
                     if self.videoWriter?.status == AVAssetWriter.Status.writing {
                         if (self.videoWriterInput?.isReadyForMoreMediaData == true) {
-                            print("Writting a sample");
+                            // print("Writting a sample");
                             if  self.videoWriterInput?.append(cmSampleBuffer) == false {
-                                print(" we have a problem writing video")
+                                // print(" we have a problem writing video")
                                 self.myResult!(false)
                             }
                         }
@@ -143,7 +148,8 @@ let screenSize = UIScreen.main.bounds
 
 
                 default:
-                   print("not a video sample, so ignore");
+                //    print("not a video sample, so ignore");
+                    break;
                 }
             } ){(error) in
                         guard error == nil else {
