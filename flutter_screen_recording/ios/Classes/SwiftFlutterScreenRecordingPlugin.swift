@@ -72,11 +72,11 @@ var myResult: FlutterResult?
         //Create the video settings
         if #available(iOS 11.0, *) {
             
-            var codec = AVVideoCodecJPEG;
+            var codec = AVVideoCodecH264;
             
-            if(recordAudio){
-                codec = AVVideoCodecH264;
-            }
+            // if(recordAudio){
+            //     codec = AVVideoCodecH264;
+            // }
             
             let videoSettings: [String : Any] = [
                 AVVideoCodecKey  : codec,

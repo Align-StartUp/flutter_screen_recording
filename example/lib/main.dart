@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_recording/flutter_screen_recording.dart';
+import 'package:flutter_screen_recording_example/services/storage_service.dart';
 import 'package:quiver/async.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:open_file/open_file.dart';
@@ -64,27 +65,29 @@ class _MyAppState extends State<MyApp> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text('Time: $_time\n'),
-            !recording
-                ? Center(
-                    child: ElevatedButton(
-                      child: Text("Record Screen"),
-                      onPressed: () => startScreenRecord(false),
-                    ),
-                  )
-                : Container(),
-            !recording
-                ? Center(
-                    child: ElevatedButton(
-                      child: Text("Record Screen & audio"),
-                      onPressed: () => startScreenRecord(true),
-                    ),
-                  )
-                : Center(
-                    child: ElevatedButton(
-                      child: Text("Stop Record"),
-                      onPressed: () => stopScreenRecord(),
-                    ),
-                  )
+            if (!recording)
+              Center(
+                child: ElevatedButton(
+                  child: const Text('Record Screen'),
+                  onPressed: () => startScreenRecord(false),
+                ),
+              )
+            else
+              Container(),
+            if (!recording)
+              Center(
+                child: ElevatedButton(
+                  child: Text("Record Screen & audio"),
+                  onPressed: () => startScreenRecord(true),
+                ),
+              )
+            else
+              Center(
+                child: ElevatedButton(
+                  child: Text("Stop Record"),
+                  onPressed: () => stopScreenRecord(),
+                ),
+              )
           ],
         ),
       ),
@@ -121,8 +124,12 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       recording = !recording;
     });
+
     print("Opening video");
     print(path);
-    OpenFile.open(path);
+
+    await StorageService().uploadFile(path);
+
+    // OpenFile.open(path);
   }
 }
