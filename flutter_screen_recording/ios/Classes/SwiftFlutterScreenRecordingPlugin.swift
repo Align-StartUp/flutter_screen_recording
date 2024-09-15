@@ -140,8 +140,8 @@ var myResult: FlutterResult?
                         if (self.videoWriterInput?.isReadyForMoreMediaData == true) {
                             // print("Writting a sample");
                             if  self.videoWriterInput?.append(cmSampleBuffer) == false {
-                                // print(" we have a problem writing video")
-                                self.myResult!(false)
+                                print(" we have a problem writing video")
+                                // self.myResult!(false)
                             }
                         }
                     }
@@ -164,23 +164,24 @@ var myResult: FlutterResult?
         }
     }
 
-    @objc func stopRecording() {
-        //Stop Recording the screen
+   @objc func stopRecording() {
         if #available(iOS 11.0, *) {
-            RPScreenRecorder.shared().stopCapture( handler: { (error) in
-                print("stopping recording");
-            })
-        } else {
-          //  Fallback on earlier versions
+            RPScreenRecorder.shared().stopCapture { (error) in
+                print("stopping recording")
+            }
         }
 
-        self.videoWriterInput?.markAsFinished();
-        self.audioInput?.markAsFinished();
-        
-        self.videoWriter?.finishWriting {
-            print("finished writing video");
+        if let videoWriterInput = self.videoWriterInput, videoWriterInput.isReadyForMoreMediaData {
+            videoWriterInput.markAsFinished()
+        }
 
-            //Now save the video
+        if let audioInput = self.audioInput, audioInput.isReadyForMoreMediaData {
+            audioInput.markAsFinished()
+        }
+
+        self.videoWriter?.finishWriting {
+            print("finished writing video")
+
             PHPhotoLibrary.shared().performChanges({
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.videoOutputURL!)
             }) { saved, error in
@@ -189,14 +190,10 @@ var myResult: FlutterResult?
                     let defaultAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                     alertController.addAction(defaultAction)
                     //self.present(alertController, animated: true, completion: nil)
-                }
-                if error != nil {
-                    print("Video did not save for some reason", error.debugDescription);
-                    debugPrint(error?.localizedDescription ?? "error is nil");
+                } else if let error = error {
+                    print("Video did not save for some reason", error.localizedDescription)
                 }
             }
         }
-    
-}
-    
+    }
 }
