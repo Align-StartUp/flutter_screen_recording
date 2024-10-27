@@ -34,12 +34,15 @@
             startRecording()
 
         }else if(call.method == "stopRecordScreen"){
+            myResult = result
             if(videoWriter != nil){
                 stopRecording()
-                let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
-                result(String(documentsPath.appendingPathComponent(nameVideo)))
+                // let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
+                // result(String(documentsPath.appendingPathComponent(nameVideo)))
+            } else {
+                result("")  
+                myResult = nil
             }
-            result("")
         }
     }
 
@@ -171,36 +174,83 @@
         }
     }
 
+    // @objc func stopRecording() {
+    //         if #available(iOS 11.0, *) {
+    //             RPScreenRecorder.shared().stopCapture { (error) in
+    //                 print("stopping recording")
+    //             }
+    //         }
+
+    //         if let videoWriterInput = self.videoWriterInput, videoWriterInput.isReadyForMoreMediaData {
+    //             videoWriterInput.markAsFinished()
+    //         }
+
+    //         if let audioInput = self.audioInput, audioInput.isReadyForMoreMediaData {
+    //             audioInput.markAsFinished()
+    //         }
+
+    //         self.videoWriter?.finishWriting {
+    //             print("finished writing video")
+
+    //             PHPhotoLibrary.shared().performChanges({
+    //                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.videoOutputURL!)
+    //             }) { saved, error in
+    //                 if saved {
+    //                     let alertController = UIAlertController(title: "Your video was successfully saved", message: nil, preferredStyle: .alert)
+    //                     let defaultAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+    //                     alertController.addAction(defaultAction)
+    //                     //self.present(alertController, animated: true, completion: nil)
+    //                 } else if let error = error {
+    //                     print("Video did not save for some reason", error.localizedDescription)
+    //                 }
+    //             }
+    //         }
+    //     }
     @objc func stopRecording() {
-            if #available(iOS 11.0, *) {
-                RPScreenRecorder.shared().stopCapture { (error) in
-                    print("stopping recording")
+        if #available(iOS 11.0, *) {
+            RPScreenRecorder.shared().stopCapture { (error) in
+                print("Đang dừng ghi hình")
+                
+                if let error = error {
+                    print("Lỗi khi dừng ghi: \(error.localizedDescription)")
+                    // Bạn có thể muốn trả về kết quả lỗi ở đây
+                    self.myResult?(false)
+                    return
                 }
-            }
+                
+                // Sau khi ghi hình đã dừng, hoàn tất việc ghi video
+                if let videoWriterInput = self.videoWriterInput {
+                    videoWriterInput.markAsFinished()
+                }
 
-            if let videoWriterInput = self.videoWriterInput, videoWriterInput.isReadyForMoreMediaData {
-                videoWriterInput.markAsFinished()
-            }
+                if let audioInput = self.audioInput {
+                    audioInput.markAsFinished()
+                }
 
-            if let audioInput = self.audioInput, audioInput.isReadyForMoreMediaData {
-                audioInput.markAsFinished()
-            }
-
-            self.videoWriter?.finishWriting {
-                print("finished writing video")
-
-                PHPhotoLibrary.shared().performChanges({
-                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.videoOutputURL!)
-                }) { saved, error in
-                    if saved {
-                        let alertController = UIAlertController(title: "Your video was successfully saved", message: nil, preferredStyle: .alert)
-                        let defaultAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                        alertController.addAction(defaultAction)
-                        //self.present(alertController, animated: true, completion: nil)
-                    } else if let error = error {
-                        print("Video did not save for some reason", error.localizedDescription)
+                self.videoWriter?.finishWriting {
+                    print("Đã hoàn tất ghi video")
+                    
+                    // Tùy chọn, lưu video vào thư viện Ảnh
+                    PHPhotoLibrary.shared().performChanges({
+                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.videoOutputURL!)
+                    }) { saved, error in
+                        if saved {
+                            print("Video đã được lưu thành công vào Ảnh")
+                        } else if let error = error {
+                            print("Video không được lưu vì lý do nào đó: \(error.localizedDescription)")
+                        }
                     }
+                    
+                    // Trả kết quả về Flutter
+                    let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
+                    self.myResult?(String(documentsPath.appendingPathComponent(self.nameVideo)))
+                    self.myResult = nil  // Đặt lại result handler
                 }
             }
+        } else {
+            // Xử lý các phiên bản iOS cũ hơn nếu cần
+            self.myResult?(false)
         }
     }
+
+}
